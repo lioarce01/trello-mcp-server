@@ -6,14 +6,16 @@ import {
     ListToolsRequestSchema,
     ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import axios from 'axios'
+import axios from 'axios';
 
-const [, , TRELLO_API_KEY, TRELLO_TOKEN] = process.argv;
-if (!TRELLO_API_KEY || !TRELLO_TOKEN) {
-    console.log("Please provide a TRELLO_API_KEY and TRELLO_TOKEN as command line arguments.");
-    process.exit(1);
+const [, , apiKeyArg, tokenArg] = process.argv;
+
+if (!apiKeyArg || !tokenArg) {
+    throw new Error("TRELLO_API_KEY and TRELLO_TOKEN must be provided as CLI arguments");
 }
 
+const TRELLO_API_KEY = apiKeyArg;
+const TRELLO_TOKEN = tokenArg;
 const TRELLO_BASE_URL = "https://api.trello.com/1";
 
 const server = new Server(
@@ -27,71 +29,67 @@ const server = new Server(
             tools: {}
         }
     }
-)
+);
 
 // Helper function to make API requests
 async function trelloGet(path: string, params: Record<string, any> = {}) {
     const response = await axios.get(`${TRELLO_BASE_URL}${path}`, {
         params: {
-            key: TRELLO_API_KEY, token: TRELLO_TOKEN, ...params
+            key: TRELLO_API_KEY,
+            token: TRELLO_TOKEN,
+            ...params
         }
-    })
+    });
     return response.data;
 }
 
 async function trelloPost(path: string, data: Record<string, any> = {}) {
     const response = await axios.post(`${TRELLO_BASE_URL}${path}`, null, {
-        params: { key: TRELLO_API_KEY, token: TRELLO_TOKEN, ...data }
+        params: {
+            key: TRELLO_API_KEY,
+            token: TRELLO_TOKEN,
+            ...data
+        }
     });
     return response.data;
 }
 
 async function trelloPut(path: string, data: Record<string, any> = {}) {
     const response = await axios.put(`${TRELLO_BASE_URL}${path}`, null, {
-        params: { key: TRELLO_API_KEY, token: TRELLO_TOKEN, ...data }
+        params: {
+            key: TRELLO_API_KEY,
+            token: TRELLO_TOKEN,
+            ...data
+        }
     });
     return response.data;
 }
-
-async function getBoardDetails(boardId: string) {
-    const lists = await trelloGet(`/boards/${boardId}/lists`, { fields: "id, name, closed" });
-    const openLists = lists.filter((list: any) => !list.closed);
-
-    return await Promise.all(openLists.map(async (list: any) => {
-        const cards = await trelloGet(`/lists/${list.id}/cards`, { fields: "id, name, closed" });
-        const openCards = cards.filter((card: any) => !card.closed);
-
-        return {
-            listId: list.id,
-            listName: list.name,
-            cards: openCards.map((card: any) => ({
-                id: `card:${card.id}`,
-                name: card.name,
-                description: `Trello card: ${card.name} in list ${list.name}`,
-            }))
-        };
-    }));
-}
-
 
 // MCP Resources Handlers
 
 // ListResources: List all resources (boards)
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const boards = await trelloGet("/members/me/boards", { fields: "id, name, closed" })
+    try {
+        const boards = await trelloGet("/members/me/boards", { fields: "id,name,closed" });
+        const openBoards = boards.filter((b: any) => !b.closed);
 
-    // filter out closed boards
-    const openBoards = boards.filter((board: any) => !board.closed);
+        return {
+            resources: openBoards.map((board: any) => ({
+                uri: `board:${board.id}`, // Cambio: usar 'uri' en lugar de 'id'
+                name: board.name,
+                description: `Trello board: ${board.name}`,
+                mimeType: "application/json"
+            })),
+        };
+    } catch (error) {
+        console.error("Error fetching boards:", error);
+        return {
+            resources: [],
+        };
+    }
+});
 
-    // create resource for each open board
-    return openBoards.map((board: any) => ({
-        id: `board:${board.id}`,
-        name: board.name,
-        description: `Trello board: ${board.name}`,
-    }))
-})
-
-// ReadResources: Read listas and cards from a specific board
+// ReadResources: Read lists and cards from a specific board
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const resourceId = request.params.uri;
     if (!resourceId.startsWith("board:")) {
@@ -100,108 +98,194 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
     const boardId = resourceId.split(":")[1];
 
-    // Get lists from the board
-    const lists = await trelloGet(`/boards/${boardId}/lists`, { fields: "id, name, closed" })
+    try {
+        const lists = await trelloGet(`/boards/${boardId}/lists`, { fields: "id,name,closed" });
+        const openLists = lists.filter((list: any) => !list.closed);
 
-    // Filter out closed lists
-    const openLists = lists.filter((list: any) => !list.closed)
-
-    // Get cards from the board
-    const listWithCards = await Promise.all(openLists.map(async (list: any) => {
-        const cards = await trelloGet(`/lists/${list.id}/cards`, { fields: "id, name, closed" })
-        const openCards = cards.filter((card: any) => !card.closed);
+        const listWithCards = await Promise.all(openLists.map(async (list: any) => {
+            const cards = await trelloGet(`/lists/${list.id}/cards`, { fields: "id,name,closed" });
+            const openCards = cards.filter((card: any) => !card.closed);
+            return {
+                listId: list.id,
+                listName: list.name,
+                cards: openCards.map((card: any) => ({
+                    id: card.id,
+                    name: card.name,
+                    description: `Trello card: ${card.name} in list ${list.name}`,
+                }))
+            };
+        }));
 
         return {
-            listId: list.id,
-            listName: list.name,
-            cards: openCards.map((card: any) => ({
-                id: `card:${card.id}`,
-                name: card.name,
-                description: `Trello card: ${card.name} in list ${list.name}`,
-            }))
-        }
-    }))
-
-    return {
-        boardId,
-        lists: listWithCards
+            contents: [
+                {
+                    uri: resourceId,
+                    mimeType: "application/json",
+                    text: JSON.stringify({
+                        boardId,
+                        lists: listWithCards
+                    }, null, 2)
+                }
+            ]
+        };
+    } catch (error) {
+        console.error("Error reading board:", error);
+        throw error;
     }
-})
+});
 
 // MCP Tools Handlers
-
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const name = request.params.name
-    const args = request.params.arguments
+    const { name, arguments: args } = request.params;
 
-    switch (name) {
-        case "listBoards":
-            const boards = await trelloGet("/members/me/boards", { fields: "id, name, closed" });
-            return {
-                content: [{ type: "json", data: boards }],
-                isError: false,
-            };
-        case "readBoard":
-            const boardId = args.boardId;
-            if (!boardId) throw new Error("boardId is required");
-            const boardData = await trelloGet(`/boards/${boardId}`, { fields: "id, name, closed" });
-            if (boardData.closed) throw new Error("Board is closed");
-
-            // Get lists and cards from the board
-            const lists = await trelloGet(`/boards/${boardId}/lists`, { fields: "id, name, closed" });
-            const openLists = lists.filter((list: any) => !list.closed);
-
-            const listWithCards = await Promise.all(openLists.map(async (list: any) => {
-                const cards = await trelloGet(`/lists/${list.id}/cards`, { fields: "id, name, closed" });
-                const openCards = cards.filter((card: any) => !card.closed);
+    try {
+        switch (name) {
+            case "listBoards": {
+                const boards = await trelloGet("/members/me/boards", { fields: "id,name,closed" });
+                const openBoards = boards.filter((board: any) => !board.closed);
 
                 return {
-                    listId: list.id,
-                    listName: list.name,
-                    cards: openCards.map((card: any) => ({
-                        id: `card:${card.id}`,
-                        name: card.name,
-                        description: `Trello card: ${card.name} in list ${list.name}`,
-                    }))
-                }
-            }));
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify(openBoards.map((board: any) => ({
+                                id: board.id,
+                                name: board.name,
+                                description: `Trello board: ${board.name}`,
+                            })), null, 2)
+                        },
+                    ],
+                };
+            }
 
-            return {
-                boardId: boardData.id,
-                boardName: boardData.name,
-                lists: listWithCards
-            };
-        case "createCard":
-            const listId = args.listId;
-            const cardName = args.name;
-            const desc = args.desc || "";
+            case "readBoard": {
+                const { boardId } = args;
+                if (!boardId) throw new Error("boardId is required");
 
-            if (!listId || !cardName) throw new Error("listId and name are required");
-            const card = await trelloPost("/cards", { idList: listId, name: cardName, desc });
-            return { cardId: card.id, url: card.url };
+                const boardData = await trelloGet(`/boards/${boardId}`, { fields: "id,name,closed" });
+                if (boardData.closed) throw new Error("Board is closed");
 
-        case "moveCard":
-            const { cardId: moveId, listId: targetList } = args;
-            if (!moveId || !targetList) throw new Error("cardId and listId required");
-            await trelloPut(`/cards/${moveId}`, { idList: targetList });
-            return { moved: true };
+                const lists = await trelloGet(`/boards/${boardId}/lists`, { fields: "id,name,closed" });
+                const openLists = lists.filter((list: any) => !list.closed);
 
-        case "addComment":
-            const { cardId: commentCardId, text } = args;
-            if (!commentCardId || !text) throw new Error("cardId and text are required");
-            const comment = await trelloPost(`/cards/${commentCardId}/actions/comments`, { text });
-            return { commentId: comment.id };
+                const listWithCards = await Promise.all(openLists.map(async (list: any) => {
+                    const cards = await trelloGet(`/lists/${list.id}/cards`, { fields: "id,name,closed" });
+                    const openCards = cards.filter((card: any) => !card.closed);
+                    return {
+                        listId: list.id,
+                        listName: list.name,
+                        cards: openCards.map((card: any) => ({
+                            id: card.id,
+                            name: card.name,
+                            description: `Trello card: ${card.name} in list ${list.name}`,
+                        }))
+                    };
+                }));
 
-        case "archiveCard":
-            const { cardId: archiveId } = args;
-            if (!archiveId) throw new Error("cardId is required");
-            await trelloPut(`/cards/${archiveId}`, { closed: true });
-            return { archived: true };
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                boardId: boardData.id,
+                                boardName: boardData.name,
+                                lists: listWithCards
+                            }, null, 2)
+                        }
+                    ]
+                };
+            }
 
-        default:
-            throw new Error(`Unknown tool: ${name}`);
+            case "createCard": {
+                const { listId, name, desc = "" } = args;
+                if (!listId || !name) throw new Error("listId and name are required");
+
+                const card = await trelloPost("/cards", { idList: listId, name, desc });
+
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                cardId: card.id,
+                                url: card.url,
+                                name: card.name
+                            }, null, 2)
+                        }
+                    ]
+                };
+            }
+
+            case "moveCard": {
+                const { cardId, listId } = args;
+                if (!cardId || !listId) throw new Error("cardId and listId are required");
+
+                await trelloPut(`/cards/${cardId}`, { idList: listId });
+
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({ moved: true, cardId, listId }, null, 2)
+                        }
+                    ]
+                };
+            }
+
+            case "addComment": {
+                const { cardId, text } = args;
+                if (!cardId || !text) throw new Error("cardId and text are required");
+
+                const comment = await trelloPost(`/cards/${cardId}/actions/comments`, { text });
+
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                commentId: comment.id,
+                                text: comment.data.text
+                            }, null, 2)
+                        }
+                    ]
+                };
+            }
+
+            case "archiveCard": {
+                const { cardId } = args;
+                if (!cardId) throw new Error("cardId is required");
+
+                await trelloPut(`/cards/${cardId}`, { closed: true });
+
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: JSON.stringify({
+                                archived: true,
+                                cardId
+                            }, null, 2)
+                        }
+                    ]
+                };
+            }
+
+            default:
+                throw new Error(`Tool "${name}" is not implemented`);
+        }
+    } catch (error) {
+        console.error(`Error in tool handler for ${name}:`, error);
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: `Error: ${error.message || error}`,
+                },
+            ],
+            isError: true,
+        };
     }
-})
+});
 
 // ListTools: List all available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -210,7 +294,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "listBoards",
                 description: "List all open Trello boards",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {},
                     required: []
@@ -219,10 +303,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "readBoard",
                 description: "Read lists and cards from a specific board",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {
-                        boardId: { type: "string", description: "ID of the board to read" }
+                        boardId: {
+                            type: "string",
+                            description: "ID of the board to read"
+                        }
                     },
                     required: ["boardId"]
                 }
@@ -230,12 +317,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "createCard",
                 description: "Create a new card in a specific list",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {
-                        listId: { type: "string", description: "ID of the list to create the card in" },
-                        name: { type: "string", description: "Name of the card" },
-                        desc: { type: "string", description: "Description of the card", optional: true }
+                        listId: {
+                            type: "string",
+                            description: "ID of the list to create the card in"
+                        },
+                        name: {
+                            type: "string",
+                            description: "Name of the card"
+                        },
+                        desc: {
+                            type: "string",
+                            description: "Description of the card (optional)"
+                        }
                     },
                     required: ["listId", "name"]
                 }
@@ -243,11 +339,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "moveCard",
                 description: "Move a card to a different list",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {
-                        cardId: { type: "string", description: "ID of the card to move" },
-                        listId: { type: "string", description: "ID of the target list" }
+                        cardId: {
+                            type: "string",
+                            description: "ID of the card to move"
+                        },
+                        listId: {
+                            type: "string",
+                            description: "ID of the target list"
+                        }
                     },
                     required: ["cardId", "listId"]
                 }
@@ -255,11 +357,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "addComment",
                 description: "Add a comment to a card",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {
-                        cardId: { type: "string", description: "ID of the card to add a comment to" },
-                        text: { type: "string", description: "Comment text" }
+                        cardId: {
+                            type: "string",
+                            description: "ID of the card to add a comment to"
+                        },
+                        text: {
+                            type: "string",
+                            description: "Comment text"
+                        }
                     },
                     required: ["cardId", "text"]
                 }
@@ -267,24 +375,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             {
                 name: "archiveCard",
                 description: "Archive a card",
-                parameters: {
+                inputSchema: {
                     type: "object",
                     properties: {
-                        cardId: { type: "string", description: "ID of the card to archive" }
+                        cardId: {
+                            type: "string",
+                            description: "ID of the card to archive"
+                        }
                     },
                     required: ["cardId"]
                 }
             }
         ]
-    }
-})
+    };
+});
 
-async function runServer(): Promise<void> {
+async function runServer() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.log("Server started and listening for requests...");
+    console.error("Trello MCP server connected and ready.");
 }
 
-runServer().catch((error: unknown) => {
-    console.error("Error starting server:", error);
-});
+runServer().catch(console.error);
