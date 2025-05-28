@@ -15,8 +15,8 @@ A Model Context Protocol (MCP) server that connects Trello with AI assistants li
 
 ## Prerequisites
 
-- Node.js 16+ installed (for local development)
-- Docker and Docker Compose (for containerized deployment)
+- Node.js 20+ installed (for local development)
+- Docker (for containerized deployment)
 - A Trello account
 - Trello API credentials (API Key and Token)
 
