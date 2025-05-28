@@ -11,19 +11,23 @@ A Model Context Protocol (MCP) server that connects Trello with AI assistants li
 - 💬 Add comments to cards
 - 🗃️ Archive cards
 - 🔗 Access boards as MCP resources
+- 🐳 Docker support for easy deployment
 
 ## Prerequisites
 
-- Node.js 16+ installed
+- Node.js 16+ installed (for local development)
+- Docker and Docker Compose (for containerized deployment)
 - A Trello account
 - Trello API credentials (API Key and Token)
 
 ## Installation
 
+### Option 1: Local Installation
+
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/trello-mcp-server.git
+git clone https://github.com/lioarce01/trello-mcp-server.git
 cd trello-mcp-server
 ```
 
@@ -37,6 +41,21 @@ npm install
 
 ```bash
 npm run build
+```
+
+### Option 2: Docker Installation
+
+1. Clone this repository:
+
+```bash
+git clone https://github.com/lioarce01/trello-mcp-server.git
+cd trello-mcp-server
+```
+
+2. Build the Docker image:
+
+```bash
+docker build -t trello-mcp-server .
 ```
 
 ## Getting Trello API Credentials
@@ -53,6 +72,8 @@ npm run build
 ## Configuration
 
 ### For Claude Desktop
+
+#### Local Installation
 
 Add the server configuration to your Claude Desktop config file:
 
@@ -77,7 +98,33 @@ Add the server configuration to your Claude Desktop config file:
 }
 ```
 
+#### Docker Configuration
+
+For Docker deployment, add this configuration:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "trello-mcp": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "trello-mcp-server",
+          "YOUR_TRELLO_API_KEY",
+          "YOUR_TRELLO_TOKEN"
+        ]
+      }
+    }
+  }
+}
+```
+
 ### For VS Code with GitHub Copilot Chat
+
+#### Local Installation
 
 Add to your VS Code settings.json:
 
@@ -98,25 +145,74 @@ Add to your VS Code settings.json:
 }
 ```
 
+#### Docker Configuration
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "trello-mcp": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "trello-mcp-server",
+          "YOUR_TRELLO_API_KEY",
+          "YOUR_TRELLO_TOKEN"
+        ]
+      }
+    }
+  }
+}
+```
+
 **Important:**
 
-- Replace `absolute/path/to/the/project/dist/index.js` with the actual absolute path to your compiled server file
-- Replace `TRELLO_API_KEY` and `TRELLO_TOKEN` with your actual Trello credentials
+- Replace `absolute/path/to/the/project/dist/index.js` with the actual absolute path to your compiled server file (local installation)
+- Replace `YOUR_TRELLO_API_KEY` and `YOUR_TRELLO_TOKEN` with your actual Trello credentials
 
-## Quick Test
+## Docker Usage
+
+### Using Docker Run
+
+```bash
+# Build the image
+docker build -t trello-mcp-server .
+
+# Run with API key and token as arguments
+docker run --rm -i trello-mcp-server your_api_key your_token
+```
+
+### Local Testing
 
 To test if your server works correctly:
 
 1. **Build the project:**
 
 ```bash
-pnpm run build
+npm run build
 ```
 
 2. **Run with credentials:**
 
 ```bash
 node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
+```
+
+### Docker Testing
+
+1. **Build and run with Docker:**
+
+```bash
+docker build -t trello-mcp-server .
+docker run --rm -i trello-mcp-server your_api_key your_token
+```
+
+2. **Or with Docker Compose:**
+
+```bash
+docker-compose up
 ```
 
 3. **You should see:**
@@ -193,16 +289,29 @@ trello-mcp-server/
 ├── dist/             # Compiled JavaScript (generated)
 ├── package.json
 ├── tsconfig.json
+├── Dockerfile        # Docker configuration
+├── .dockerignore     # Docker ignore file
 └── README.md
 ```
 
 ### Building
 
+#### Local Development
+
 ```bash
 npm run build
 ```
 
+#### Docker Development
+
+```bash
+# Build Docker image
+docker build -t trello-mcp-server .
+```
+
 ### Running in Development
+
+#### Local Development
 
 To run the server directly (for testing):
 
@@ -214,6 +323,13 @@ node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
 # With pnpm
 pnpm run build
 node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
+```
+
+#### Docker Development
+
+```bash
+# Run with docker (pass credentials as arguments)
+docker run --rm -i trello-mcp-server your_key your_token
 ```
 
 ### Development Scripts
@@ -236,16 +352,23 @@ You can also create a development script in your `package.json`:
 ### Server Not Connecting
 
 1. **Check credentials:** Make sure you're passing API Key and Token as arguments
-2. **Verify file path:** Ensure the path in your MCP configuration is correct
-3. **Build first:** Always run `npm run build` or `pnpm run build` before testing
-4. **Test standalone:** Try running `node dist/index.js YOUR_KEY YOUR_TOKEN` first
+2. **Verify file path:** Ensure the path in your MCP configuration is correct (local installation)
+3. **Build first:** Always run `npm run build` or `docker build` before testing
+4. **Test standalone:** Try running the server independently first
 5. **Restart client:** Restart your MCP client (Claude Desktop/VS Code) after config changes
+
+### Docker-Specific Issues
+
+1. **Image not found:** Make sure you've built the Docker image first with `docker build -t trello-mcp-server .`
+2. **Arguments not passed:** Ensure API key and token are passed as arguments after the image name
+3. **Permissions:** Check that Docker has the necessary permissions to run containers
 
 ### Invalid Credentials Error
 
 - Double-check your Trello API Key and Token
 - Ensure the token has the necessary permissions
 - Try regenerating your token if it's expired
+- Verify credentials are properly passed as arguments
 
 ### Tools Not Working
 
@@ -253,20 +376,14 @@ You can also create a development script in your `package.json`:
 - Check that you have write permissions to the Trello board
 - Look at the console logs for detailed error messages
 
-### Debug Mode
-
-Run the server with debug output:
-
-```bash
-node dist/index.js YOUR_API_KEY YOUR_TOKEN 2>&1 | tee debug.log
-```
-
 ## Security Notes
 
 - **Never commit your API credentials** to version control
 - Store credentials securely and rotate them regularly
+- Use `.env` files and add them to `.gitignore`
 - The server only requires the permissions you grant via the Trello token
 - Consider using environment variables for credentials in production
+- Docker containers run with non-root user for security
 
 ## License
 
