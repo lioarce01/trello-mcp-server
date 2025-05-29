@@ -40,8 +40,10 @@ export function createToolHandlers(trello: TrelloApi) {
     },
     async handleReadBoard(args: any) {
       try {
+        console.error("handleReadBoard args:", args);
         const { boardId } = args;
-        if (!boardId) throw new Error("boardId is required");
+        if (!args || typeof args !== "object" || !args.boardId)
+          throw new Error("boardId is required");
         const boardData = await trello.get(`/boards/${boardId}`, {
           fields: "id,name,closed",
         });
@@ -269,5 +271,6 @@ export function createToolHandlers(trello: TrelloApi) {
         };
       }
     },
+    async handleDeleteBoard(args: any) {},
   };
 }

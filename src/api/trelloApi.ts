@@ -6,7 +6,11 @@ export class TrelloApi {
   private token: string;
   private baseUrl: string;
 
-  constructor(apiKey: string, token: string, baseUrl = TRELLO_BASE_URL) {
+  constructor(
+    apiKey: string,
+    token: string,
+    baseUrl: string = TRELLO_BASE_URL ?? ""
+  ) {
     this.apiKey = apiKey;
     this.token = token;
     this.baseUrl = baseUrl;

@@ -1,5 +1,5 @@
 import { mcpServer } from "./handlers/MCPHandlers";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 const start = async () => {
   try {

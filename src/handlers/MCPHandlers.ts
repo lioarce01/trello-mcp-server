@@ -3,7 +3,7 @@ import {
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types";
+} from "@modelcontextprotocol/sdk/types.js";
 import { TrelloApi } from "../api/trelloApi";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
@@ -14,7 +14,11 @@ import {
 import { createToolHandlers } from "./toolHandlers";
 import { toolsMetadata } from "../metadata/toolsMetadata";
 
-const trello = new TrelloApi(TRELLO_API_KEY, TRELLO_TOKEN, TRELLO_BASE_URL);
+const trello = new TrelloApi(
+  TRELLO_API_KEY ?? "",
+  TRELLO_TOKEN ?? "",
+  TRELLO_BASE_URL
+);
 const toolHandlers = createToolHandlers(trello);
 
 export const mcpServer = new Server({
@@ -110,7 +114,7 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
         result = await toolHandlers.handleListBoards();
         break;
       case "readBoard":
-        result = await toolHandlers.handleReadBoard(args.boardId);
+        result = await toolHandlers.handleReadBoard(args);
         break;
       case "createList":
         result = await toolHandlers.handleCreateList(args);
@@ -139,7 +143,11 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
       content: [
         {
           type: "text",
-          text: `Error: ${e.message || e}`,
+          text: `Error: ${
+            typeof e === "object" && e !== null && "message" in e
+              ? (e as { message: string }).message
+              : String(e)
+          }`,
         },
       ],
     };

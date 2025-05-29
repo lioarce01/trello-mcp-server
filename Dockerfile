@@ -10,7 +10,7 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpm run build
+RUN pnpm run build && ls -l dist/index.js
 
 FROM node:22.12-slim AS release
 
