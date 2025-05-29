@@ -4,12 +4,11 @@ import {
 } from "@modelcontextprotocol/sdk/types";
 import { TrelloApi } from "../api/trelloApi";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-
-const [, , apiKeyArg, tokenArg, portArg] = process.argv;
-
-const TRELLO_API_KEY = apiKeyArg;
-const TRELLO_TOKEN = tokenArg;
-const TRELLO_BASE_URL = "https://api.trello.com/1";
+import {
+  TRELLO_API_KEY,
+  TRELLO_BASE_URL,
+  TRELLO_TOKEN,
+} from "../config/config";
 
 const trello = new TrelloApi(TRELLO_API_KEY, TRELLO_TOKEN, TRELLO_BASE_URL);
 
