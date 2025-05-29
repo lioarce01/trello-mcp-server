@@ -112,4 +112,18 @@ export const toolsMetadata = [
       required: ["cardId"],
     },
   },
+  {
+    name: "deleteBoard",
+    description: "Delete a board",
+    inputSchema: {
+      type: "object",
+      properties: {
+        boardId: {
+          type: "string",
+          description: "ID of the board to delete",
+        },
+      },
+      required: ["boardId"],
+    },
+  },
 ];

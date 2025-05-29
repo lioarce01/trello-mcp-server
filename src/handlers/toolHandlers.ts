@@ -271,6 +271,38 @@ export function createToolHandlers(trello: TrelloApi) {
         };
       }
     },
-    async handleDeleteBoard(args: any) {},
+    async handleDeleteBoard(args: any) {
+      try {
+        const { boardId } = args;
+        if (!boardId) throw new Error("boardId is required");
+        await trello.delete(`/boards/${boardId}`);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  boardId,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+        };
+      }
+    },
   };
 }

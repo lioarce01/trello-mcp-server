@@ -131,6 +131,9 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "archiveCard":
         result = await toolHandlers.handleArchiveCard(args);
         break;
+      case "deleteBoard":
+        result = await toolHandlers.handleDeleteBoard(args);
+        break;
 
       default:
         throw new Error(`Tool "${name}" is not implemented`);

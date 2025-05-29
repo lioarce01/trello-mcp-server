@@ -49,6 +49,17 @@ export class TrelloApi {
     return response.data;
   }
 
+  async delete(path: string, data: Record<string, any> = {}) {
+    const response = await axios.delete(`${this.baseUrl}${path}`, {
+      params: {
+        key: this.apiKey,
+        token: this.token,
+        ...data,
+      },
+    });
+    return response.data;
+  }
+
   async createList(boardId: string, name: string) {
     return await this.post("/lists", { idBoard: boardId, name });
   }
