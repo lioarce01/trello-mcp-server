@@ -8,7 +8,7 @@
     "start": "node dist/index.js",
     "dev": "tsx ./src/index.ts",
     "docker:build": "docker build -t trello-mcp-server .",
-    "docker:run": "docker run -p 3001:3001 -e TRELLO_API_KEY=${TRELLO_API_KEY} -e TRELLO_TOKEN=${TRELLO_TOKEN} trello-mcp-server"
+    "docker:run": "docker run --rm -i --env-file .env trello-mcp-server"
   },
   "keywords": [
     "mcp",
