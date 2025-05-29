@@ -113,6 +113,20 @@ export const toolsMetadata = [
     },
   },
   {
+    name: "archiveList",
+    description: "Archive a list",
+    inputSchema: {
+      type: "object",
+      properties: {
+        listId: {
+          type: "string",
+          description: "ID of the list to archive",
+        },
+      },
+      required: ["listId"],
+    },
+  },
+  {
     name: "deleteBoard",
     description: "Delete a board",
     inputSchema: {

@@ -271,6 +271,44 @@ export function createToolHandlers(trello: TrelloApi) {
         };
       }
     },
+    async handleArchiveList(args: any) {
+      try {
+        const { listId } = args;
+        if (!listId) throw new Error("listId is required");
+
+        await trello.put(`/lists/${listId}`, {
+          closed: true,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  archived: true,
+                  listId,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
     async handleDeleteBoard(args: any) {
       try {
         const { boardId } = args;
@@ -301,6 +339,7 @@ export function createToolHandlers(trello: TrelloApi) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     },

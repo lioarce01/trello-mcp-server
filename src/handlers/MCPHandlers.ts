@@ -131,6 +131,9 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "archiveCard":
         result = await toolHandlers.handleArchiveCard(args);
         break;
+      case "archiveList":
+        result = await toolHandlers.handleArchiveList(args);
+        break;
       case "deleteBoard":
         result = await toolHandlers.handleDeleteBoard(args);
         break;
