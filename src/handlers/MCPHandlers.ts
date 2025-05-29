@@ -1,5 +1,7 @@
 import {
+  CallToolRequestSchema,
   ListResourcesRequestSchema,
+  ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types";
 import { TrelloApi } from "../api/trelloApi";
@@ -9,8 +11,11 @@ import {
   TRELLO_BASE_URL,
   TRELLO_TOKEN,
 } from "../config/config";
+import { createToolHandlers } from "./toolHandlers";
+import { toolsMetadata } from "../metadata/toolsMetadata";
 
 const trello = new TrelloApi(TRELLO_API_KEY, TRELLO_TOKEN, TRELLO_BASE_URL);
+const toolHandlers = createToolHandlers(trello);
 
 export const mcpServer = new Server({
   name: "trello-mcp-server",
@@ -92,4 +97,57 @@ mcpServer.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     console.error("Error reading board:", error);
     throw error;
   }
+});
+
+mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  try {
+    let result;
+
+    switch (name) {
+      case "listBoards":
+        result = await toolHandlers.handleListBoards();
+        break;
+      case "readBoard":
+        result = await toolHandlers.handleReadBoard(args.boardId);
+        break;
+      case "createList":
+        result = await toolHandlers.handleCreateList(args);
+        break;
+      case "createCard":
+        result = await toolHandlers.handleCreateCard(args);
+        break;
+      case "moveCard":
+        result = await toolHandlers.handleMoveCard(args);
+        break;
+      case "addComment":
+        result = await toolHandlers.handleAddComment(args);
+        break;
+      case "archiveCard":
+        result = await toolHandlers.handleArchiveCard(args);
+        break;
+
+      default:
+        throw new Error(`Tool "${name}" is not implemented`);
+    }
+
+    return result;
+  } catch (e) {
+    console.error(`Error in tool handler for ${name}:`, e);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error: ${e.message || e}`,
+        },
+      ],
+    };
+  }
+});
+
+mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: toolsMetadata,
+  };
 });

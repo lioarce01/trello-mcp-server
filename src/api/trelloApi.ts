@@ -1,15 +1,12 @@
 import axios from "axios";
+import { TRELLO_BASE_URL } from "../config/config";
 
 export class TrelloApi {
   private apiKey: string;
   private token: string;
   private baseUrl: string;
 
-  constructor(
-    apiKey: string,
-    token: string,
-    baseUrl = "https://api.trello.com/1"
-  ) {
+  constructor(apiKey: string, token: string, baseUrl = TRELLO_BASE_URL) {
     this.apiKey = apiKey;
     this.token = token;
     this.baseUrl = baseUrl;
