@@ -379,5 +379,41 @@ export function createToolHandlers(trello: TrelloApi) {
         };
       }
     },
+    async handleUpdateCardName(args: any) {
+      try {
+        const { cardId, name } = args;
+        if (!cardId || !name) throw new Error("cardId and name required");
+
+        await trello.put(`/cards/${cardId}`, { name });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  cardId,
+                  name,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
   };
 }

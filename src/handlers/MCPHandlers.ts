@@ -140,6 +140,9 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "update_list_name":
         result = await toolHandlers.handleUpdateListName(args);
         break;
+      case "update_card_name":
+        result = await toolHandlers.handleUpdateCardName(args);
+        break;
 
       default:
         throw new Error(`Tool "${name}" is not implemented`);

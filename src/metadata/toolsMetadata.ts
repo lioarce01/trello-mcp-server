@@ -152,10 +152,28 @@ export const toolsMetadata = [
         },
         name: {
           type: "string",
-          description: "Name updated of the list",
+          description: "New name of the card",
         },
       },
       required: ["listId", "name"],
+    },
+  },
+  {
+    name: "update_card_name",
+    description: "Update a card name",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cardId: {
+          type: "string",
+          description: "ID of the card to be updated",
+        },
+        name: {
+          type: "string",
+          description: "New name of the card",
+        },
+      },
+      required: ["cardId", "name"],
     },
   },
 ];
