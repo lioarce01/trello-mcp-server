@@ -267,14 +267,19 @@ Archive the completed card "Setup database"
 
 ## Available Tools
 
-| Tool          | Description                                | Parameters                          |
-| ------------- | ------------------------------------------ | ----------------------------------- |
-| `listBoards`  | List all open Trello boards                | None                                |
-| `readBoard`   | Read lists and cards from a specific board | `boardId`                           |
-| `createCard`  | Create a new card in a specific list       | `listId`, `name`, `desc` (optional) |
-| `moveCard`    | Move a card to a different list            | `cardId`, `listId`                  |
-| `addComment`  | Add a comment to a card                    | `cardId`, `text`                    |
-| `archiveCard` | Archive a card                             | `cardId`                            |
+| Tool               | Description                                | Parameters                          |
+| ------------------ | ------------------------------------------ | ----------------------------------- |
+| `list_boards`      | List all open Trello boards                | None                                |
+| `read_board`       | Read lists and cards from a specific board | `boardId`                           |
+| `create_list`      | Create a list                              | `boardId`, `name`                   |
+| `create_card`      | Create a new card in a specific list       | `listId`, `name`, `desc` (optional) |
+| `move_card`        | Move a card to a different list            | `cardId`, `listId`                  |
+| `add_comment`      | Add a comment to a card                    | `cardId`, `text`                    |
+| `archive_card`     | Archive a card                             | `cardId`                            |
+| `archive_list`     | Archive a list                             | `listId`                            |
+| `delete_board`     | Delete a board                             | `boardId`                           |
+| `update_list_name` | Update a list name                         | `listId`, `name`                    |
+| `update_card_name` | Update a card name                         | `cardId`, `name`                    |
 
 ## Available Resources
 
