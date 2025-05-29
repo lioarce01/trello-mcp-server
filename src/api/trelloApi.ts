@@ -1,0 +1,54 @@
+import axios from "axios";
+
+export class TrelloApi {
+  private apiKey: string;
+  private token: string;
+  private baseUrl: string;
+
+  constructor(
+    apiKey: string,
+    token: string,
+    baseUrl = "https://api.trello.com/1"
+  ) {
+    this.apiKey = apiKey;
+    this.token = token;
+    this.baseUrl = baseUrl;
+  }
+
+  async get(path: string, params: Record<string, any> = {}) {
+    const response = await axios.get(`${this.baseUrl}${path}`, {
+      params: {
+        key: this.apiKey,
+        token: this.token,
+        ...params,
+      },
+    });
+    return response.data;
+  }
+
+  async post(path: string, data: Record<string, any> = {}) {
+    const response = await axios.post(`${this.baseUrl}${path}`, null, {
+      params: {
+        key: this.apiKey,
+        token: this.token,
+        ...data,
+      },
+    });
+    return response.data;
+  }
+
+  async put(path: string, data: Record<string, any> = {}) {
+    const response = await axios.put(`${this.baseUrl}${path}`, null, {
+      params: {
+        key: this.apiKey,
+        token: this.token,
+        ...data,
+      },
+    });
+    return response.data;
+  }
+
+  async createList(boardId: string, name: string) {
+    return await this.post("/lists", { idBoard: boardId, name });
+  }
+}
