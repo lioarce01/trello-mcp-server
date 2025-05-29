@@ -87,10 +87,8 @@ Add the server configuration to your Claude Desktop config file:
     "servers": {
       "trello-mcp": {
         "command": "node",
-        "args": [
-          "absolute/path/to/the/project/dist/index.js",
-        ],
-         "env": {
+        "args": ["absolute/path/to/the/project/dist/index.js"],
+        "env": {
           "TRELLO_API_KEY": "your_api_key",
           "TRELLO_TOKEN": "your_token",
           "TRELLO_BASE_URL": "https://api.trello.com/1"
@@ -115,9 +113,12 @@ For Docker deployment, add this configuration:
           "run",
           "--rm",
           "-i",
-          "-e", "TRELLO_API_KEY=your_api_key",
-          "-e", "TRELLO_TOKEN=your_token",
-          "-e", "TRELLO_BASE_URL=https://api.trello.com/1",
+          "-e",
+          "TRELLO_API_KEY=your_api_key",
+          "-e",
+          "TRELLO_TOKEN=your_token",
+          "-e",
+          "TRELLO_BASE_URL=https://api.trello.com/1",
           "trello-mcp-server"
         ]
       }
@@ -138,9 +139,12 @@ Add to your VS Code settings.json:
     "servers": {
       "trello-mcp": {
         "command": "node",
-        "args": [
-          "absolute/path/to/the/project/dist/index.js",
-        ]
+        "args": ["absolute/path/to/the/project/dist/index.js"],
+        "env": {
+          "TRELLO_API_KEY": "your_api_key",
+          "TRELLO_TOKEN": "your_token",
+          "TRELLO_BASE_URL": "https://api.trello.com/1"
+        }
       }
     }
   }
@@ -159,9 +163,12 @@ Add to your VS Code settings.json:
           "run",
           "--rm",
           "-i",
-          "-e", "TRELLO_API_KEY=your_api_key",
-          "-e", "TRELLO_TOKEN=your_token",
-          "-e", "TRELLO_BASE_URL=https://api.trello.com/1",
+          "-e",
+          "TRELLO_API_KEY=your_api_key",
+          "-e",
+          "TRELLO_TOKEN=your_token",
+          "-e",
+          "TRELLO_BASE_URL=https://api.trello.com/1",
           "trello-mcp-server"
         ]
       }
