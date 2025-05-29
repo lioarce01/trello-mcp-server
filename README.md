@@ -89,9 +89,12 @@ Add the server configuration to your Claude Desktop config file:
         "command": "node",
         "args": [
           "absolute/path/to/the/project/dist/index.js",
-          "TRELLO_API_KEY",
-          "TRELLO_TOKEN"
-        ]
+        ],
+         "env": {
+          "TRELLO_API_KEY": "your_api_key",
+          "TRELLO_TOKEN": "your_token",
+          "TRELLO_BASE_URL": "https://api.trello.com/1"
+        }
       }
     }
   }
@@ -112,9 +115,10 @@ For Docker deployment, add this configuration:
           "run",
           "--rm",
           "-i",
-          "trello-mcp-server",
-          "YOUR_TRELLO_API_KEY",
-          "YOUR_TRELLO_TOKEN"
+          "-e", "TRELLO_API_KEY=your_api_key",
+          "-e", "TRELLO_TOKEN=your_token",
+          "-e", "TRELLO_BASE_URL=https://api.trello.com/1",
+          "trello-mcp-server"
         ]
       }
     }
@@ -136,8 +140,6 @@ Add to your VS Code settings.json:
         "command": "node",
         "args": [
           "absolute/path/to/the/project/dist/index.js",
-          "TRELLO_API_KEY",
-          "TRELLO_TOKEN"
         ]
       }
     }
@@ -157,9 +159,10 @@ Add to your VS Code settings.json:
           "run",
           "--rm",
           "-i",
-          "trello-mcp-server",
-          "YOUR_TRELLO_API_KEY",
-          "YOUR_TRELLO_TOKEN"
+          "-e", "TRELLO_API_KEY=your_api_key",
+          "-e", "TRELLO_TOKEN=your_token",
+          "-e", "TRELLO_BASE_URL=https://api.trello.com/1",
+          "trello-mcp-server"
         ]
       }
     }
@@ -181,7 +184,7 @@ Add to your VS Code settings.json:
 docker build -t trello-mcp-server .
 
 # Run with API key and token as arguments
-docker run --rm -i trello-mcp-server your_api_key your_token
+docker run --rm -i --env-file .env trello-mcp-server
 ```
 
 ### Local Testing
@@ -197,7 +200,7 @@ npm run build
 2. **Run with credentials:**
 
 ```bash
-node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
+node dist/index.js
 ```
 
 ### Docker Testing
@@ -206,19 +209,13 @@ node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
 
 ```bash
 docker build -t trello-mcp-server .
-docker run --rm -i trello-mcp-server your_api_key your_token
+docker run --rm -i --env-file .env trello-mcp-server
 ```
 
-2. **Or with Docker Compose:**
-
-```bash
-docker-compose up
-```
-
-3. **You should see:**
+2. **You should see:**
 
 ```
-Trello MCP server connected and ready.
+MCP server connected and ready.
 ```
 
 **Note:** The server will wait for MCP client connections. To exit, press `Ctrl+C`.
@@ -281,19 +278,6 @@ The server exposes your Trello boards as MCP resources that can be read by AI as
 
 ## Development
 
-### Project Structure
-
-```
-trello-mcp-server/
-├── index.ts          # Main server implementation
-├── dist/             # Compiled JavaScript (generated)
-├── package.json
-├── tsconfig.json
-├── Dockerfile        # Docker configuration
-├── .dockerignore     # Docker ignore file
-└── README.md
-```
-
 ### Building
 
 #### Local Development
@@ -318,18 +302,18 @@ To run the server directly (for testing):
 ```bash
 # With npm
 npm run build
-node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
+node dist/index.js
 
 # With pnpm
 pnpm run build
-node dist/index.js YOUR_TRELLO_API_KEY YOUR_TRELLO_TOKEN
+node dist/index.js
 ```
 
 #### Docker Development
 
 ```bash
 # Run with docker (pass credentials as arguments)
-docker run --rm -i trello-mcp-server your_key your_token
+docker run --rm -i --env-file .env trello-mcp-server
 ```
 
 ### Development Scripts
@@ -339,10 +323,11 @@ You can also create a development script in your `package.json`:
 ```json
 {
   "scripts": {
-    "start": "node dist/index.js",
-    "start:dev": "node dist/index.js YOUR_API_KEY YOUR_TOKEN",
     "build": "tsc",
-    "dev": "tsc && node dist/index.js YOUR_API_KEY YOUR_TOKEN"
+    "start": "node dist/index.js",
+    "dev": "tsx ./src/index.ts",
+    "docker:build": "docker build -t trello-mcp-server .",
+    "docker:run": "docker run --rm -i --env-file .env trello-mcp-server"
   }
 }
 ```
