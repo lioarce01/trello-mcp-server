@@ -1,6 +1,6 @@
 export const toolsMetadata = [
   {
-    name: "listBoards",
+    name: "list_boards",
     description: "List all open Trello boards",
     inputSchema: {
       type: "object",
@@ -9,7 +9,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "readBoard",
+    name: "read_board",
     description: "Read lists and cards from a specific board",
     inputSchema: {
       type: "object",
@@ -23,7 +23,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "createList",
+    name: "create_list",
     description: "Create a new list in a specific board",
     inputSchema: {
       type: "object",
@@ -41,7 +41,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "createCard",
+    name: "create_card",
     description: "Create a new card in a specific list",
     inputSchema: {
       type: "object",
@@ -63,7 +63,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "moveCard",
+    name: "move_card",
     description: "Move a card to a different list",
     inputSchema: {
       type: "object",
@@ -81,7 +81,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "addComment",
+    name: "add_comment",
     description: "Add a comment to a card",
     inputSchema: {
       type: "object",
@@ -99,7 +99,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "archiveCard",
+    name: "archive_card",
     description: "Archive a card",
     inputSchema: {
       type: "object",
@@ -113,7 +113,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "archiveList",
+    name: "archive_list",
     description: "Archive a list",
     inputSchema: {
       type: "object",
@@ -127,7 +127,7 @@ export const toolsMetadata = [
     },
   },
   {
-    name: "deleteBoard",
+    name: "delete_board",
     description: "Delete a board",
     inputSchema: {
       type: "object",
@@ -138,6 +138,24 @@ export const toolsMetadata = [
         },
       },
       required: ["boardId"],
+    },
+  },
+  {
+    name: "update_list_name",
+    description: "Update a list name",
+    inputSchema: {
+      type: "object",
+      properties: {
+        listId: {
+          type: "string",
+          description: "ID of the list to be updated",
+        },
+        name: {
+          type: "string",
+          description: "Name updated of the list",
+        },
+      },
+      required: ["listId", "name"],
     },
   },
 ];

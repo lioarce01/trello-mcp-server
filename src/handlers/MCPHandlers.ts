@@ -110,32 +110,35 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
     let result;
 
     switch (name) {
-      case "listBoards":
+      case "list_boards":
         result = await toolHandlers.handleListBoards();
         break;
-      case "readBoard":
+      case "read_board":
         result = await toolHandlers.handleReadBoard(args);
         break;
-      case "createList":
+      case "create_list":
         result = await toolHandlers.handleCreateList(args);
         break;
-      case "createCard":
+      case "create_card":
         result = await toolHandlers.handleCreateCard(args);
         break;
-      case "moveCard":
+      case "move_card":
         result = await toolHandlers.handleMoveCard(args);
         break;
-      case "addComment":
+      case "add_comment":
         result = await toolHandlers.handleAddComment(args);
         break;
-      case "archiveCard":
+      case "archive_card":
         result = await toolHandlers.handleArchiveCard(args);
         break;
-      case "archiveList":
+      case "archive_list":
         result = await toolHandlers.handleArchiveList(args);
         break;
-      case "deleteBoard":
+      case "delete_board":
         result = await toolHandlers.handleDeleteBoard(args);
+        break;
+      case "update_list_name":
+        result = await toolHandlers.handleUpdateListName(args);
         break;
 
       default:

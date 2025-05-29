@@ -343,5 +343,41 @@ export function createToolHandlers(trello: TrelloApi) {
         };
       }
     },
+    async handleUpdateListName(args: any) {
+      try {
+        const { listId, name } = args;
+        if (!listId || !name) throw new Error("listId and name is required");
+
+        await trello.put(`/lists/${listId}`, { name });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  listId,
+                  name,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
   };
 }
